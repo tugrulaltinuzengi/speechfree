@@ -30,19 +30,31 @@ SpeechFree is a **fourth option**: a non-invasive wearable that decodes speech *
 ---
 
 ## How it works
-┌──────────────────┐    BLE / USB    ┌─────────────────────────────────┐
-│   Cervical band  │  ────────────►  │      Android phone (offline)    │
-│   1× sEMG        │                 │  ┌───────────────────────────┐  │
-│   4× PZT         │                 │  │ Causal IIR DSP            │  │
-│   ESP32-S3       │                 │  │ Voice Activity Detection  │  │
-│   500 Hz, 12-bit │                 │  │ 1D-CNN (ONNX, <100ms)     │  │
-└──────────────────┘                 │  │ Confidence gate           │  │
-                                     │  │ Cloned-voice TTS          │  │
-                                     │  └───────────────────────────┘  │
-                                     └─────────────────────────────────┘
-Every step — sampling, filtering, segmentation, inference, synthesis — runs **on-device**. Biometric data never leaves the phone (KVKK/GDPR compliant by design).
 
----
+```mermaid
+flowchart LR
+    subgraph BAND["Cervical band"]
+        direction TB
+        SENS["1× sEMG + 4× PZT"]
+        MCU["ESP32-S3<br>500 Hz · 12-bit ADC"]
+        SENS --> MCU
+    end
+
+    subgraph PHONE["Android phone — fully offline"]
+        direction TB
+        DSP["Causal IIR DSP<br>Butterworth + 50 Hz notch"]
+        VAD["Voice Activity Detection<br>state machine + pre-roll"]
+        CNN["1D-CNN inference<br>ONNX · &lt;100 ms"]
+        GATE["Confidence gate<br>Youden's J threshold"]
+        TTS["Cloned-voice TTS"]
+        DSP --> VAD --> CNN --> GATE --> TTS
+    end
+
+    MCU ==BLE / USB==> DSP
+    TTS --> OUT(["🔊 audio out"])
+```
+
+Every step — sampling, filtering, segmentation, inference, synthesis — runs **on-device**. Biometric data never leaves the phone (KVKK/GDPR compliant by design).
 
 ## Key engineering decisions
 
