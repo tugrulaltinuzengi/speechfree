@@ -1,0 +1,42 @@
+# Electrolarynx - Mobile Inference Pipeline
+
+Bu doküman, ESP32-S3'ten gelen ham sensör verisinin mobil cihazda (Android) işlenip, yapay zeka modelinden geçirilerek sese (TTS) dönüşme adımlarını tanımlar. **Offline-first ve gerçek zamanlı (real-time)** çalışacak şekilde tasarlanmıştır.
+
+## Akış Adımları (Sample-by-Sample)
+
+### 1. Veri Alımı (BLE)
+- **Format:** ESP32'den BLE üzerinden 500 Hz hızında 6 kanallı veri gelir.
+- **Veri Tipi:** 12-bit ADC değerleri (0-4095 aralığında tamsayılar).
+- **Kanal Sırası:** `[EMG1, EMG2, PZT1, PZT2, PZT3, PZT4]`
+
+### 2. Sinyal Ön İşleme (Causal Preprocessing)
+Her gelen sample için *anında* şu işlemler uygulanır:
+1. **Voltaj Ölçekleme:** `ADC_Value * (3.3 / 4095.0)` ile Float'a çevrilir.
+2. **DC Offset:** Her kanal için tutulan uzun vadeli hareketli ortalama (moving average) değerden çıkarılır.
+3. **Causal Filtreleme (`lfilter` eşleniği):**
+   - EMG (0, 1): 20-200 Hz Band-pass + 50 Hz Notch
+   - PZT (2, 3, 4, 5): 5-200 Hz Band-pass + 50 Hz Notch
+   *Not: Filtre katsayıları `preprocessing_params.json` dosyasından okunmalıdır. Kesinlikle `filtfilt` (zero-phase) KULLANILMAYACAKTIR.*
+
+### 3. VAD (Voice Activity Detection) - State Machine
+Filtrelenmiş tekil sample VAD'in `step()` fonksiyonuna beslenir.
+- **Envelope:** Sadece `EMG1` ve `EMG2`'nin mutlak değerleri toplanıp 5Hz Causal Lowpass (EMA) filtresinden geçirilir.
+- Eğer VAD bir kelimenin bittiğine karar verirse, bir `Segment` objesi (veya array) fırlatır. Aksi halde biriktirmeye devam eder.
+
+### 4. Segmentin Hazırlanması (Pad/Crop)
+VAD'den çıkan segment uzunluğu değişkendir. 1D-CNN modeli **kesinlikle 1000 sample (2 saniye)** giriş bekler.
+- Segment 1000'den kısaysa: **Sağdan sıfırlarla (zero-padding)** 1000'e tamamla.
+- Segment 1000'den uzunsa: **Tam ortadan (merkezden)** 1000 sample kırp.
+- **Çıktı Boyutu:** `[1, 6, 1000]` Tensor.
+
+### 5. ONNX Inference
+- Hazırlanan Tensor, `electrolarynx_classifier.onnx` modeline beslenir.
+- Çıktı olarak 10 sınıflı (Logits) `[1, 10]` boyutunda bir vektör alınır.
+- Çıktıya **Softmax** uygulanarak olasılıklara (probabilities) dönüştürülür.
+
+### 6. Confidence (Güven) Kontrolü
+- Softmax sonucunda en yüksek olasılığa sahip sınıfın (Top-1) skoru kontrol edilir.
+- `if top1_prob < 0.4:` (Bu değer ROC analizinden sonra güncellenecektir).
+  - Aksiyon: VAD yanlış tetiklendi. Göz ardı et, TTS'e gönderme.
+- `else:`
+  - Aksiyon: Sınıf indeksini Tuğrul'un TTS modülüne gönder.

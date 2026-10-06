@@ -54,7 +54,7 @@ flowchart LR
     TTS --> OUT(["🔊 audio out"])
 ```
 
-Every step — sampling, filtering, segmentation, inference, synthesis — runs **on-device**. Biometric data never leaves the phone (KVKK/GDPR compliant by design).
+Sampling, filtering, segmentation and inference run **on-device**; biosignal data never leaves the phone (KVKK/GDPR compliant by design). Speech output has two modes: **pre-rendered clips** (fully offline) or the **ElevenLabs API** via `TTS/06_deliverable/ElevenLabsTtsPlayer.kt` (needs a network connection and your own API key).
 
 ## Key engineering decisions
 
@@ -119,7 +119,7 @@ Each subfolder ships its own README with setup and usage.
 
 ```bash
 cd TextRecon
-pip install torch scikit-learn scipy numpy onnx onnxruntime
+pip install -r TextRecon/requirements.txt
 python build_dataset.py        # compile dataset.npz from recordings
 python rf_baseline.py          # Random Forest baseline (~67% within-session)
 python train.py                # train 1D-CNN
@@ -131,6 +131,13 @@ python export_onnx.py          # export to ONNX for mobile
 See [`Final/README_KAYIT.md`](Final/README_KAYIT.md) for ESP32-S3 wiring, op-amp piezo buffers, and the MATLAB acquisition protocol.
 
 ### Generate TTS assets (voice cloning)
+
+Set your own credentials first; nothing is hard-coded:
+
+```bash
+export ELEVENLABS_API_KEY=...      # your key
+export ELEVENLABS_VOICE_ID=...     # a voice you have the rights to use
+```
 
 See [`TTS/06_deliverable/README_YIGIT.md`](TTS/06_deliverable/README_YIGIT.md) for the ElevenLabs pipeline and the Kotlin player integration.
 
@@ -161,5 +168,11 @@ Kadir Has University · Electrical & Electronics Engineering · FENS 402 — Eng
 
 **Disclaimer:** Academic research prototype. Not a certified medical device. Do not use for clinical purposes without full regulatory validation.
 
-> **Repository status:** this repo currently holds the project overview only. The referenced
-> `docs/`, `Final/` and `TTS/` folders have not been published yet; links to them will resolve once added.
+## Data availability
+
+This repository ships code, documentation, the final report and the base model. It does **not**
+include the raw sEMG/PZT recordings (`tugrul_paket/recordings/`, `Final/recordings/`), the datasets
+compiled from them (`*.npz`) or the synthesized voice clips (`*.mp3`). These are biometric data and a
+cloned voice of named team members and are held back until the participants have agreed to publication.
+`build_dataset.py`, `rf_baseline.py` and `train.py` therefore need you to record your own sessions with
+the protocol in `Final/README_KAYIT.md`, or to request the dataset from the authors.

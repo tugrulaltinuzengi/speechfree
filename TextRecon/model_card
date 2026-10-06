@@ -1,0 +1,53 @@
+# Model Card: Electrolarynx 1D-CNN Classifier (Finalization Phase)
+
+## 1. Model Detayları
+* **Geliştirici:** Mert Kaçmaz (ML Pipeline Lead)
+* **Model Mimarisi:** 1D Convolutional Neural Network (1D-CNN)
+  * 4x Conv1d blok (BatchNorm + ReLU + Dropout)
+  * Global Average Pooling (GAP)
+  * Fully Connected (Dense) Classifier
+* **Girdi Boyutu (Input):** `[Batch_Size, 6, 1000]`
+  * 6 Kanal (2 EMG, 4 PZT)
+  * 1000 Örneklem (500 Hz örnekleme hızı ile tam 2 saniyelik pencere)
+* **Çıktı Boyutu (Output):** `[Batch_Size, 10]` (10 hedef kelime için Softmax olasılık vektörü)
+* **Format:** ONNX (`opset_version=14`)
+* **Parametre Sayısı:** ~250K
+* **Model Boyutu:** < 5 MB
+
+## 2. Kullanım Amacı (Intended Use)
+* **Birincil Kullanım:** Total larenjektomi ameliyatı geçirmiş hastalar için mobil cihaz üzerinde (offline) çalışan gerçek zamanlı sessiz konuşma arayüzü (Silent Speech Interface).
+* **Kapsam Dışı Kullanım (Out-of-Scope):** Sürekli konuşma (continuous speech) tanıma. Model sadece ayrık, tekil kelimelerin (isolated words) sınıflandırılması için tasarlanmıştır. Anatomi gereği, sensör yerleşimi larenjektomi hastalarına özeldir (tiroid kıkırdağı üzerine sensör yerleştirilmez).
+
+## 3. Eğitim Verisi (Training Data)
+* **Kayıt Cihazı:** ESP32-S3 tabanlı, 12-bit ADC özellikli donanım (BLE üzerinden).
+* **Sensörler:** * EMG1 (Submental Sol), EMG2 (Submental Sağ)
+  * PZT1 (Submental Orta), PZT2 (Submandibular Sol), PZT3 (Submandibular Sağ), PZT4 (Lateral Boyun)
+* **Kelime Dağarcığı (10 Sınıf):** EVET, HAYIR, MERHABA, TESEKKURLER, SU, YARDIM, TAMAM, DUR, GEL, GUNAYDIN.
+* **Segmentasyon:** Maker-based (işaretleyici) değil, inference ile birebir aynı çalışan **VAD (Voice Activity Detection)** algoritması ile otomatik elde edilmiştir.
+
+## 4. Performans Metrikleri (Placeholder - Eğitim Sonrası Doldurulacak)
+*PoC fazındaki (3-kanal RF) referans baseline: Within-session %67, Cross-session %52.*
+
+| Değerlendirme Protokolü | Top-1 Accuracy | Top-3 Accuracy | Hedeflenen |
+|-------------------------|----------------|----------------|------------|
+| Within-Session (5-fold) | % TBD          | % TBD          | ≥ %80      |
+| Cross-Session (N-1)     | % TBD          | % TBD          | ≥ %70      |
+| Multi-Session (Holdout) | % TBD          | % TBD          | -          |
+
+**Gecikme (Latency) Ölçümleri (Android CPU):**
+* **ONNX Inference Süresi:** TBD ms (Hedef: <100 ms)
+* **Uçtan Uca Gecikme (Kelime bitimi -> Sınıflandırma):** TBD ms
+
+## 5. Eğitim Prosedürü ve Hiperparametreler
+* **Optimizasyon:** AdamW (lr=1e-3, weight_decay=1e-4)
+* **Scheduler:** CosineAnnealingLR
+* **Kayıp Fonksiyonu:** CrossEntropyLoss
+* **Veri Artırma (Augmentation):**
+  * Channel Dropout (p=0.1) - Donanımsal elektrot kopmalarına karşı dayanıklılık için.
+  * Gaussian Noise (std=0.01)
+  * Random Time Shift (±50 sample / ±100 ms)
+* **Ön İşleme (Preprocessing):** Causal `lfilter` (Zero-phase filtfilt kullanılmamıştır). 20-200 Hz (EMG) ve 5-200 Hz (PZT) Band-pass + 50 Hz Notch.
+
+## 6. Etik ve Güvenlik Sınırları
+* Model, hastanın biyometrik verisini (EMG ve mekanik artikülasyon) işler. Veri gizliliği için **tamamen on-device (cihaz içi)** çalışacak şekilde tasarlanmıştır; buluta hiçbir ses veya sensör verisi gönderilmez.
+* Yanlış sınıflandırma riski (False Accept), VAD'nin ardından uygulanan Softmax Confidence Thresholding (Eşik: ~0.4) ile en aza indirilmiştir. Düşük güven skoruna sahip tahminler TTS motoruna gönderilmez.

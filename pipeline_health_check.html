@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpeechFree — Pipeline Health Check</title>
+<style>
+  :root {
+    --blue:   #2563eb;
+    --green:  #16a34a;
+    --amber:  #d97706;
+    --red:    #dc2626;
+    --purple: #7c3aed;
+    --slate:  #475569;
+    --bg:     #f1f5f9;
+    --card:   #ffffff;
+    --border: #e2e8f0;
+    --text:   #1e293b;
+    --muted:  #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #7c3aed 100%);
+    color: white; padding: 28px 40px 22px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  header .sub { font-size: 13px; opacity: .8; margin-top: 4px; }
+  header .meta { text-align: right; font-size: 12px; opacity: .75; line-height: 1.9; }
+
+  /* ── Status banner ── */
+  .status-banner {
+    background: #fefce8; border-bottom: 2px solid #fde047;
+    padding: 10px 40px; font-size: 13px; color: #713f12;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 60px; }
+  section { margin-bottom: 34px; }
+  h2 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .7px; color: var(--slate); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2::after { content:""; flex:1; height:1px; background:var(--border); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+
+  /* ── Stat row ── */
+  .stat-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+  @media(max-width:800px){ .stat-row { grid-template-columns: repeat(3,1fr); } }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .stat-card .val { font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+  .stat-card .lbl { font-size: 11px; color: var(--muted); }
+  .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-card.blue  .val { color: var(--blue); }
+  .stat-card.green .val { color: var(--green); }
+  .stat-card.amber .val { color: var(--amber); }
+  .stat-card.red   .val { color: var(--red); }
+  .stat-card.purple .val { color: var(--purple); }
+
+  /* ── Tables ── */
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th {
+    background:#f8fafc; text-align:left; padding:8px 12px;
+    font-weight:700; font-size:11px; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--slate); border-bottom:2px solid var(--border);
+  }
+  td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#f8fafc; }
+  .mono { font-family:"Cascadia Code","Fira Code",Consolas,monospace; font-size:12px; }
+
+  /* ── Badges ── */
+  .badge {
+    display:inline-block; padding:2px 9px; border-radius:999px;
+    font-size:11px; font-weight:700; letter-spacing:.3px; white-space:nowrap;
+  }
+  .badge.done    { background:#d1fae5; color:#065f46; }
+  .badge.ready   { background:#dbeafe; color:#1e40af; }
+  .badge.pending { background:#fef3c7; color:#92400e; }
+  .badge.warn    { background:#fee2e2; color:#991b1b; }
+  .badge.partial { background:#ede9fe; color:#4c1d95; }
+
+  /* ── Pipeline diagram ── */
+  .pipeline-wrap { overflow-x:auto; }
+  .pipeline {
+    display:flex; align-items:center; gap:0;
+    min-width:880px; padding:22px 16px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+  .p-step { display:flex; flex-direction:column; align-items:center; gap:5px; flex-shrink:0; }
+  .p-box {
+    border-radius:8px; padding:9px 12px; text-align:center;
+    font-size:12px; font-weight:600; min-width:105px;
+    line-height:1.3; border:2px solid transparent;
+  }
+  .p-box.data   { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+  .p-box.proc   { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+  .p-box.vad    { background:#fef3c7; color:#92400e; border-color:#fcd34d; }
+  .p-box.match  { background:#ede9fe; color:#4c1d95; border-color:#c4b5fd; }
+  .p-box.ml     { background:#fce7f3; color:#831843; border-color:#f9a8d4; }
+  .p-box.out    { background:#f0fdf4; color:#14532d; border-color:#86efac; }
+  .p-lbl { font-size:10px; color:var(--muted); text-align:center; max-width:108px; }
+  .p-arrow { font-size:20px; color:#94a3b8; flex-shrink:0; margin:0 2px; padding-bottom:16px; }
+
+  /* ── Word pills ── */
+  .word-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .word-pill {
+    border-radius:10px; padding:10px 16px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    min-width:110px; border:2px solid transparent;
+    position:relative;
+  }
+  .word-pill .wname { font-weight:800; font-size:13px; }
+  .word-pill .wstats { font-size:11px; display:flex; gap:6px; align-items:center; }
+  .word-pill .wbar-wrap { width:100%; height:5px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+  .word-pill .wbar { height:100%; border-radius:3px; }
+
+  .word-pill.green  { background:#f0fdf4; border-color:#86efac; }
+  .word-pill.green .wname { color:#14532d; }
+  .word-pill.green .wbar  { background:#16a34a; }
+
+  .word-pill.amber  { background:#fffbeb; border-color:#fcd34d; }
+  .word-pill.amber .wname { color:#78350f; }
+  .word-pill.amber .wbar  { background:#d97706; }
+
+  .word-pill.red    { background:#fff1f2; border-color:#fca5a5; }
+  .word-pill.red .wname { color:#991b1b; }
+  .word-pill.red .wbar  { background:#dc2626; }
+
+  /* ── EMG finding card ── */
+  .finding-card {
+    background:#fff7ed; border:2px solid #fed7aa;
+    border-radius:10px; padding:18px 20px;
+  }
+  .finding-card .fc-title { font-weight:700; font-size:14px; color:#9a3412; margin-bottom:10px; }
+  .fc-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:600px){ .fc-grid { grid-template-columns:1fr; } }
+
+  /* ── Progress bar ── */
+  .pbar-wrap { background:#e2e8f0; border-radius:999px; height:8px; overflow:hidden; }
+  .pbar { height:100%; border-radius:999px; }
+
+  /* ── Grid layouts ── */
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media(max-width:700px){ .grid-3,.grid-2 { grid-template-columns:1fr; } }
+
+  /* ── Script card ── */
+  .sc { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .sc-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .sc-name { font-weight:700; font-size:13px; font-family:monospace; color:var(--blue); }
+  .sc-desc { font-size:12px; color:var(--muted); margin-bottom:10px; }
+  .sc-steps { display:flex; flex-direction:column; gap:4px; }
+  .sc-step  { display:flex; align-items:center; gap:8px; font-size:12px; }
+
+  /* ── Checklist ── */
+  .cl { display:flex; flex-direction:column; gap:8px; }
+  .cl-item {
+    display:flex; align-items:flex-start; gap:12px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:11px 15px;
+  }
+  .cl-icon { font-size:17px; flex-shrink:0; }
+  .cl-title { font-weight:700; font-size:13px; }
+  .cl-desc  { font-size:12px; color:var(--muted); margin-top:1px; }
+
+  /* ── Code block ── */
+  pre {
+    background:#1e293b; color:#e2e8f0; border-radius:8px;
+    padding:13px 16px; font-family:"Cascadia Code","Fira Code",Consolas,monospace;
+    font-size:12.5px; line-height:1.6; overflow-x:auto;
+  }
+  pre .cmt { color:#64748b; }
+  pre .cmd { color:#7dd3fc; }
+  pre .flg { color:#86efac; }
+
+  footer {
+    text-align:center; color:var(--muted); font-size:11px;
+    padding:20px; border-top:1px solid var(--border); margin-top:40px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚡ SpeechFree — VAD Pipeline Health Check</h1>
+    <div class="sub">ElectroLarynx · EMG-based Voice Activity Detection vs. Manual REP Markers</div>
+  </div>
+  <div class="meta">
+    <div>4 recordings · 500 Hz · 3 channels (EMG1 + PZT1 + PZT2)</div>
+    <div>10 words · 10 reps each · ~400 reference segments</div>
+    <div>Updated: 2026-05-09 · kayit1 analysis complete</div>
+  </div>
+</header>
+
+<div class="status-banner">
+  ⚠️ <strong>kayit1 analysis complete.</strong>
+  EMG electrode noise floor overlaps speech signal — VAD performance varies significantly per word.
+  kayit2–4 pending.
+</div>
+
+<main>
+
+<!-- ── Live results: kayit1 ───────────────────────────────────────────── -->
+<section>
+  <h2>kayit1 — Live Results (threshold_k = 1.5)</h2>
+  <div class="stat-row">
+    <div class="stat-card green">
+      <div class="val">66%</div>
+      <div class="lbl">Match rate</div>
+      <div class="sub">66 / 100 REPs matched</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="val">710 ms</div>
+      <div class="lbl">Δonset MAE</div>
+      <div class="sub">VAD fires late on weak signals</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="val">0.556</div>
+      <div class="lbl">Mean IoU</div>
+      <div class="sub">matched pairs only</div>
+    </div>
+    <div class="stat-card red">
+      <div class="val">69</div>
+      <div class="lbl">False positives</div>
+      <div class="sub">noise triggers in silence</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="val">34</div>
+      <div class="lbl">Misses</div>
+      <div class="sub">REPs below threshold</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Vocabulary + detection rates ─────────────────────────────────── -->
+<section>
+  <h2>Vocabulary — Detection Rate per Word (kayit1, k=1.5)</h2>
+  <div class="word-grid">
+
+    <div class="word-pill red">
+      <div class="wname">HAYIR</div>
+      <div class="wstats">
+        <span style="color:#dc2626;font-weight:800;">0/10</span>
+        <span style="color:#94a3b8;">k_need=1.58</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:0%"></div></div>
+    </div>
+
+    <div class="word-pill red">
+      <div class="wname">EVET</div>
+      <div class="wstats">
+        <span style="color:#dc2626;font-weight:800;">2/10</span>
+        <span style="color:#94a3b8;">k_need=1.86</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:20%"></div></div>
+    </div>
+
+    <div class="word-pill amber">
+      <div class="wname">MERHABA</div>
+      <div class="wstats">
+        <span style="color:#d97706;font-weight:800;">6/10</span>
+        <span style="color:#94a3b8;">k_need=2.35</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:60%"></div></div>
+    </div>
+
+    <div class="word-pill amber">
+      <div class="wname">TESEKKURLER</div>
+      <div class="wstats">
+        <span style="color:#d97706;font-weight:800;">6/10</span>
+        <span style="color:#94a3b8;">k_need=3.10</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:60%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">SU</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">8/10</span>
+        <span style="color:#94a3b8;">k_need=2.88</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">YARDIM</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">8/10</span>
+        <span style="color:#94a3b8;">k_need=3.13</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">TAMAM</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">8/10</span>
+        <span style="color:#94a3b8;">k_need=3.05</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">GÜNAYDIN</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">8/10</span>
+        <span style="color:#94a3b8;">k_need=3.77</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">DUR</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">10/10</span>
+        <span style="color:#94a3b8;">k_need=3.42</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:100%"></div></div>
+    </div>
+
+    <div class="word-pill green">
+      <div class="wname">GEL</div>
+      <div class="wstats">
+        <span style="color:#16a34a;font-weight:800;">10/10</span>
+        <span style="color:#94a3b8;">k_need=3.69</span>
+      </div>
+      <div class="wbar-wrap"><div class="wbar" style="width:100%"></div></div>
+    </div>
+
+  </div>
+  <div style="margin-top:12px;font-size:12px;color:var(--muted);">
+    <strong>k_need</strong> = minimum threshold_k at which word's EMG peak crosses calibration baseline · lower = harder to detect
+  </div>
+</section>
+
+<!-- ── EMG Finding ───────────────────────────────────────────────────── -->
+<section>
+  <h2>Key Finding — EMG Electrode Noise</h2>
+  <div class="finding-card">
+    <div class="fc-title">⚠️ EMG1 noise floor overlaps speech signal in kayit1</div>
+    <div class="fc-grid">
+      <div>
+        <table style="font-size:12px;">
+          <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Calibration EMG env. mean</td><td><strong>0.559 V</strong></td></tr>
+            <tr><td>Calibration EMG env. std</td><td><strong>0.062 V</strong></td></tr>
+            <tr><td>Raw ADC range during silence</td><td><strong style="color:#dc2626;">9 – 900 / 1023</strong></td></tr>
+            <tr><td>Threshold at k=3.0</td><td>0.743 V</td></tr>
+            <tr><td>Threshold at k=1.5</td><td>0.651 V</td></tr>
+            <tr><td>HAYIR peak EMG env.</td><td style="color:#dc2626;"><strong>0.656 V</strong> — only 5 mV margin at k=1.5</td></tr>
+            <tr><td>DUR peak EMG env.</td><td style="color:#16a34a;"><strong>0.769 V</strong> — comfortably above k=3.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:12px;color:#7c2d12;line-height:1.8;">
+        <p><strong>Root cause:</strong> EMG electrode picks up near-full ADC range broadband noise during silence
+        (std ≈ 260 ADC steps = 25% of 10-bit range). After 20–200 Hz bandpass,
+        a significant noise floor (~0.56 V envelope) remains.</p>
+        <br>
+        <p><strong>Consequence:</strong> Short / low-effort words (HAYIR, EVET) produce EMG only
+        ~10–20% above the noise floor. Any single k cannot simultaneously capture
+        low-SNR words and suppress silence FPs.</p>
+        <br>
+        <p><strong>k=1.5 tradeoff:</strong> captures 66% of REPs but generates 69 FPs.
+        k=3.0 only captures ~40% of REPs with fewer FPs.</p>
+        <br>
+        <p><strong>Next step:</strong> Check kayit2–4. If EMG quality improves
+        (electrode re-attachment, shorter session), k=3.0 may work.
+        PZT2 shows 6–24× better SNR for EVET/HAYIR but inconsistent for MERHABA.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Threshold sweep ───────────────────────────────────────────────── -->
+<section>
+  <h2>Threshold Sweep — kayit1</h2>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead>
+        <tr>
+          <th>threshold_k</th><th>VAD threshold (V)</th><th>Segments found</th>
+          <th>Match rate</th><th>FP</th><th>Miss</th><th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>3.0</strong> <small style="color:var(--muted)">(default)</small></td>
+          <td class="mono">0.743</td><td>49</td>
+          <td><strong>~49%</strong></td><td>~0</td><td>~51</td>
+          <td><span class="badge warn">HAYIR/EVET/SU/MERHABA all missed</span></td>
+        </tr>
+        <tr>
+          <td><strong>2.0</strong></td>
+          <td class="mono">0.682</td><td>95</td>
+          <td><strong>48%</strong></td><td>47</td><td>52</td>
+          <td><span class="badge warn">HAYIR still 0/10</span></td>
+        </tr>
+        <tr style="background:#f0fdf4;">
+          <td><strong>1.5</strong> ✓</td>
+          <td class="mono">0.651</td><td>135</td>
+          <td><strong>66%</strong></td><td>69</td><td>34</td>
+          <td><span class="badge partial">Best balance — used for this run</span></td>
+        </tr>
+        <tr>
+          <td><strong>&lt; 1.5</strong></td>
+          <td class="mono">&lt; 0.651</td><td>150+</td>
+          <td>est. 70%+</td><td>80+</td><td>&lt;30</td>
+          <td><span class="badge warn">Excessive FPs, noise triggers in every gap</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── Pipeline diagram ──────────────────────────────────────────────── -->
+<section>
+  <h2>Pipeline Architecture</h2>
+  <div class="pipeline-wrap">
+    <div class="pipeline">
+      <div class="p-step">
+        <div class="p-box data">📁 Raw Recordings<br><small>kayitN_ALL_SENSORS</small></div>
+        <div class="p-lbl">500 Hz · pzt1, pzt2, emg1</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box proc">🔄 Col Permute<br><small>→ emg1, pzt1, pzt2</small></div>
+        <div class="p-lbl">Step 0 · critical</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box proc">🔧 Preprocess<br><small>bandpass + notch</small></div>
+        <div class="p-lbl">EMG 20–200 Hz · PZT 5–200 Hz</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box vad">📡 EMG VAD<br><small>IIR · state machine</small></div>
+        <div class="p-lbl">13 s calib · k=1.5 (kayit1)</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step" style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+        <div class="p-box data" style="min-width:95px;font-size:11px;">📌 REP Markers</div>
+        <div class="p-box match" style="min-width:95px;">🎯 IoU Match<br><small>greedy ≥ 0.3</small></div>
+        <div class="p-lbl">onset / offset</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box match">📊 Metrics + SNR</div>
+        <div class="p-lbl">Steps 3–4</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box ml">🗄️ Dataset<br><small>.npz</small></div>
+        <div class="p-lbl">Step 5a</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box ml">🧠 CNN<br><small>5-fold + LOSO</small></div>
+        <div class="p-lbl">Step 5b</div>
+      </div>
+      <div class="p-arrow">→</div>
+      <div class="p-step">
+        <div class="p-box out">✅ Outputs</div>
+        <div class="p-lbl">Step 6</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Deliverables ──────────────────────────────────────────────────── -->
+<section>
+  <h2>Deliverables</h2>
+  <div class="cl">
+
+    <div class="cl-item" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+        <div class="cl-icon">✅</div>
+        <div>
+          <div class="cl-title">kayit1_VAD_vs_MARKER.csv</div>
+          <div class="cl-desc">
+            100 rows · rep_label, rep_onset, rep_offset, vad_onset, vad_offset,
+            delta_onset_ms, delta_offset_ms, iou, semg_rms, snr_db, low_snr, matched ·
+            <em>66 matched, 34 miss</em>
+          </div>
+        </div>
+      </div>
+      <!-- Per-word detection rates embedded in deliverable -->
+      <div style="margin-top:12px;padding-left:42px;width:100%;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;">Per-word detection rate · k=1.5</div>
+        <div class="word-grid" style="gap:7px;">
+
+          <div class="word-pill red" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">HAYIR</div>
+            <div class="wstats"><span style="color:#dc2626;font-weight:800;">0/10</span><span style="color:#94a3b8;font-size:10px;">k=1.58</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:0%"></div></div>
+          </div>
+
+          <div class="word-pill red" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">EVET</div>
+            <div class="wstats"><span style="color:#dc2626;font-weight:800;">2/10</span><span style="color:#94a3b8;font-size:10px;">k=1.86</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:20%"></div></div>
+          </div>
+
+          <div class="word-pill amber" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">MERHABA</div>
+            <div class="wstats"><span style="color:#d97706;font-weight:800;">6/10</span><span style="color:#94a3b8;font-size:10px;">k=2.35</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:60%"></div></div>
+          </div>
+
+          <div class="word-pill amber" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">TEŞEKKÜRLER</div>
+            <div class="wstats"><span style="color:#d97706;font-weight:800;">6/10</span><span style="color:#94a3b8;font-size:10px;">k=3.10</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:60%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">SU</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">8/10</span><span style="color:#94a3b8;font-size:10px;">k=2.88</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">YARDIM</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">8/10</span><span style="color:#94a3b8;font-size:10px;">k=3.13</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">TAMAM</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">8/10</span><span style="color:#94a3b8;font-size:10px;">k=3.05</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">GÜNAYDIN</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">8/10</span><span style="color:#94a3b8;font-size:10px;">k=3.77</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:80%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">DUR</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">10/10</span><span style="color:#94a3b8;font-size:10px;">k=3.42</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:100%"></div></div>
+          </div>
+
+          <div class="word-pill green" style="min-width:95px;padding:7px 12px;">
+            <div class="wname" style="font-size:12px;">GEL</div>
+            <div class="wstats"><span style="color:#16a34a;font-weight:800;">10/10</span><span style="color:#94a3b8;font-size:10px;">k=3.69</span></div>
+            <div class="wbar-wrap"><div class="wbar" style="width:100%"></div></div>
+          </div>
+
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:var(--muted);">
+          🔴 0–30% · 🟡 31–79% · 🟢 80–100% · <strong>k</strong> = min threshold_k to clear noise floor
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-icon">✅</div>
+      <div>
+        <div class="cl-title">kayit1_timeline.png</div>
+        <div class="cl-desc">
+          EMG IIR envelope + threshold line (top) ·
+          green VAD bands + red REP onset lines (bottom) ·
+          calibration zone shaded · shared time axis 0–341 s
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-icon">✅</div>
+      <div>
+        <div class="cl-title">delta_onset_histogram.png</div>
+        <div class="cl-desc">
+          Distribution of VAD onset error vs. REP markers ·
+          MAE = 710 ms · mean and median lines overlaid
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-icon">✅</div>
+      <div>
+        <div class="cl-title">vad_compare_report.md</div>
+        <div class="cl-desc">
+          Threshold selection rationale · metrics table · failure mode analysis ·
+          accuracy comparison placeholder (to be filled after retraining)
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-item" style="opacity:.6;">
+      <div class="cl-icon">⏳</div>
+      <div>
+        <div class="cl-title">kayit2–4_VAD_vs_MARKER.csv  <span class="badge pending">Pending</span></div>
+        <div class="cl-desc">Run after kayit1 approval · may show better EMG quality</div>
+      </div>
+    </div>
+
+    <div class="cl-item" style="opacity:.6;">
+      <div class="cl-icon">⏳</div>
+      <div>
+        <div class="cl-title">summary.csv  <span class="badge pending">Pending</span></div>
+        <div class="cl-desc">Word-level aggregation across all 4 recordings</div>
+      </div>
+    </div>
+
+    <div class="cl-item" style="opacity:.6;">
+      <div class="cl-icon">⏳</div>
+      <div>
+        <div class="cl-title">dataset_recordings.npz  <span class="badge pending">Pending</span></div>
+        <div class="cl-desc">New dataset from all 4 recordings · X (N,3,1000) · y · session_id</div>
+      </div>
+    </div>
+
+    <div class="cl-item" style="opacity:.6;">
+      <div class="cl-icon">⏳</div>
+      <div>
+        <div class="cl-title">confusion_matrix_within_session.png  <span class="badge pending">Pending</span></div>
+        <div class="cl-desc">5-fold CV confusion matrix with new VAD segments · compare to 67% baseline</div>
+      </div>
+    </div>
+
+    <div class="cl-item" style="opacity:.6;">
+      <div class="cl-icon">⏳</div>
+      <div>
+        <div class="cl-title">confusion_matrix_cross_session.png  <span class="badge pending">Pending</span></div>
+        <div class="cl-desc">LOSO cross-session · compare to 52% baseline</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Metrics comparison ────────────────────────────────────────────── -->
+<section>
+  <h2>Metrics — Baseline vs. New VAD</h2>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Baseline</th><th>kayit1 (k=1.5)</th><th>kayit2–4</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>VAD match rate</td><td>—</td>
+          <td><strong>66%</strong></td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td>False positive count</td><td>—</td>
+          <td><strong style="color:#dc2626;">69</strong></td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge warn">High — noise issue</span></td>
+        </tr>
+        <tr>
+          <td>Miss count</td><td>—</td>
+          <td><strong>34</strong> (HAYIR 10/10, EVET 8/10)</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge warn">HAYIR undetectable</span></td>
+        </tr>
+        <tr>
+          <td>Δonset MAE</td><td>—</td>
+          <td><strong>710 ms</strong></td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge warn">High — late triggering</span></td>
+        </tr>
+        <tr>
+          <td>Mean IoU (matched)</td><td>—</td>
+          <td><strong>0.556</strong></td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge partial">Moderate</span></td>
+        </tr>
+        <tr>
+          <td>Within-session Top-1</td><td>67%</td>
+          <td style="color:var(--muted);font-style:italic;">TBD — pending retrain</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge pending">Pending</span></td>
+        </tr>
+        <tr>
+          <td>Within-session Top-3</td><td>87%</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge pending">Pending</span></td>
+        </tr>
+        <tr>
+          <td>Cross-session Top-1</td><td>52%</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td style="color:var(--muted);font-style:italic;">TBD</td>
+          <td><span class="badge pending">Pending</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── Scripts ───────────────────────────────────────────────────────── -->
+<section>
+  <h2>Scripts</h2>
+  <div class="grid-3">
+
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-name">vad_compare.py</span>
+        <span class="badge done">Running ✓</span>
+      </div>
+      <div class="sc-desc">Steps 0–4 · VAD evaluation + all plots · kayit1 complete</div>
+      <div class="sc-steps">
+        <div class="sc-step"><span>✅</span> Column permute (pzt1,pzt2,emg1 → emg1,pzt1,pzt2)</div>
+        <div class="sc-step"><span>✅</span> Preprocess + VAD (13 s calibration)</div>
+        <div class="sc-step"><span>✅</span> Marker parsing + offset estimation</div>
+        <div class="sc-step"><span>✅</span> Greedy IoU matching (≥ 0.3)</div>
+        <div class="sc-step"><span>✅</span> SNR per segment (EMG vs baseline)</div>
+        <div class="sc-step"><span>✅</span> Timeline overlay + Δonset histogram</div>
+        <div class="sc-step"><span>✅</span> kayit1 CSV + report generated</div>
+        <div class="sc-step"><span>⏳</span> kayit2–4 pending approval</div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-name">build_dataset_recordings.py</span>
+        <span class="badge ready">Ready</span>
+      </div>
+      <div class="sc-desc">Step 5a · Build dataset_recordings.npz · compatible with train_base_model.py</div>
+      <div class="sc-steps">
+        <div class="sc-step"><span>✅</span> Handles kayitN_* file format</div>
+        <div class="sc-step"><span>✅</span> Column permutation</div>
+        <div class="sc-step"><span>✅</span> session_id for LOSO eval</div>
+        <div class="sc-step"><span>✅</span> seg.data.T → (3, 1000) for Conv1d</div>
+        <div class="sc-step"><span>⏳</span> Awaiting all 4 recordings approval</div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-name">retrain_evaluate.py</span>
+        <span class="badge ready">Ready</span>
+      </div>
+      <div class="sc-desc">Step 5b + confusion matrices · 5-fold CV + LOSO cross-session</div>
+      <div class="sc-steps">
+        <div class="sc-step"><span>✅</span> Within-session 5-fold CV (per session)</div>
+        <div class="sc-step"><span>✅</span> Top-1 and Top-3 accuracy</div>
+        <div class="sc-step"><span>✅</span> Cross-session LOSO eval</div>
+        <div class="sc-step"><span>✅</span> Confusion matrix plots</div>
+        <div class="sc-step"><span>✅</span> Auto-updates vad_compare_report.md</div>
+        <div class="sc-step"><span>⏳</span> Pending dataset_recordings.npz</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── How to run ────────────────────────────────────────────────────── -->
+<section>
+  <h2>How to Run</h2>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="card">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px;">1 — kayit1 done ✅ · Check timeline plot, then run all 4</div>
+<pre><span class="cmt"># Open and review:</span>
+vad_compare_output\kayit1_timeline.png
+
+<span class="cmt"># Approved — run all 4 recordings:</span>
+<span class="cmd">python</span> vad_compare.py <span class="flg">--threshold_k 1.5</span></pre>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px;">2 — Build dataset</div>
+<pre><span class="cmd">python</span> build_dataset_recordings.py <span class="flg">--threshold_k 1.5</span></pre>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px;">3 — Retrain + confusion matrix</div>
+<pre><span class="cmd">python</span> retrain_evaluate.py <span class="flg">--skip_cross_session</span>   <span class="cmt"># fast</span>
+<span class="cmd">python</span> retrain_evaluate.py                           <span class="cmt"># full LOSO</span></pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  SpeechFree · ElectroLarynx Capstone · VAD Comparison Pipeline · 2026-05-09
+  · Python 3.13 · model_and_shi/ · data: tugrul_paket/recordings/
+</footer>
+
+</body>
+</html>
