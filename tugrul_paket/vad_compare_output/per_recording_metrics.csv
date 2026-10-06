@@ -1,0 +1,2 @@
+recording,n_ref,n_vad,n_matched,match_rate,miss_count,false_positive_count,mean_delta_onset_ms,std_delta_onset_ms,mae_delta_onset_ms,mean_delta_offset_ms,std_delta_offset_ms,mae_delta_offset_ms,mean_iou,threshold_k,vad_threshold
+kayit1,100,135,66,0.66,34,69,622.2560151515165,639.4660274868182,709.5330000000016,-355.741160606067,703.121184939165,647.4975212121198,0.5561231392533998,1.5,0.6510399301518439

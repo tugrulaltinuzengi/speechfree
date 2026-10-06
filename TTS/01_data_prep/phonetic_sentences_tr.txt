@@ -1,0 +1,282 @@
+# Türkçe Fonetik Denge Cümleleri — ~300 cümle
+# Tüm Türkçe fonemler dengeli şekilde kapsanmaktadır.
+# Kayıt sırasında her cümle ayrı bir take olarak okunacak.
+# Format: bir satır = bir cümle. # ile başlayanlar yorum.
+
+Evet, bu doğru bir karar.
+Hayır, öyle değil.
+Merhaba, nasılsınız?
+Teşekkür ederim, çok naziksiniz.
+Su içmek istiyorum.
+Yardım eder misiniz lütfen?
+Tamam, anlıyorum sizi.
+Dur, bir dakika bekleyin.
+Gel buraya, sana bir şey göstereceğim.
+Günaydın, bugün hava çok güzel.
+Çarşamba günü toplantımız var.
+Şehir merkezine gitmek istiyorum.
+Ağaçların altında oturalım.
+Bugün markete gidip ekmek alacağım.
+Öğleden sonra parkta yürüyüş yapalım.
+Kapıyı lütfen kapatır mısınız?
+Kahvaltıda peynir ve zeytin yedim.
+Dün gece çok geç uyudum.
+Yarın erken kalkmam gerekiyor.
+Bu kitabı okumayı çok sevdim.
+Hava soğuk olduğu için mont giydim.
+Çocuklar bahçede oynuyor.
+Telefonu şarj etmeyi unuttum.
+Doktora gitmem gerekiyor.
+Otobüs ne zaman kalkıyor?
+Fiyatlar bu ay çok arttı.
+Müzik dinlemek beni rahatlatıyor.
+Bugün çok yorgunum, erken yatacağım.
+Restoranda güzel bir akşam yemeği yedik.
+Trene yetişmek için koştum.
+Güneş batıyorken deniz kıyısında oturduk.
+Çiçekler bahar gelince açıyor.
+Yağmur yağmaya başladı, şemsiye almam lazım.
+Köpek bahçede havlıyor.
+Maçı izlemek için erken geldik.
+Sınav sonuçları açıklandı.
+Kütüphanede saatlerce çalıştım.
+Annem akşam yemeği pişiriyor.
+Babam gazetesini okurken kahve içiyor.
+Kardeşim üniversiteye başladı.
+Sokak lambası bozulmuş, çok karanlık.
+Pencereden güzel bir manzara görünüyor.
+Tatilimizi deniz kenarında geçirdik.
+Balkondan şehrin ışıklarını seyrediyorum.
+Doğum günümü unutmadın, teşekkürler.
+Çorba çok sıcak, biraz bekleyelim.
+Kışın kar yağdığında çocuklar çok sevinir.
+Gökyüzü bugün açık ve mavi.
+Araba tamire gitmiş, otobüsle geldim.
+Bilgisayarım takılı kaldı, yeniden başlatacağım.
+Pazarda taze sebze aldım.
+Öğrenciler dersi dikkatle dinliyordu.
+Akşam arkadaşlarla buluşacağız.
+Havaalanına erken gitmemiz gerekiyor.
+Film çok güzeldi, ağladım.
+Alışveriş merkezinde çok zaman geçirdik.
+Sabah kahvaltısını es geçme.
+Spor yapmak sağlığa çok faydalı.
+Çocukların gülüşmesi içimi ısıtıyor.
+Kapının önünde ayakkabılarını çıkar.
+Masanın üzerindeki kalemimi aldın mı?
+Kitap rafı dolmak üzere.
+Şarkı söylemek güzel bir hobi.
+Elektrik faturası gelmiş, ödeyeceğim.
+Pikniğe gitmek için harika bir gün.
+Trafik sıkışık, geç kalabiliriz.
+Çay demlenince haber ver.
+Rüzgar çok sert esiyor bugün.
+Ormanda yürüyüş yapmayı seviyorum.
+Balık tutmak için sabah erken kalktık.
+Kedi pencere kenarında güneşleniyor.
+Kuşlar her sabah şarkı söylüyor.
+Bahçedeki gül açmış, çok güzel kokuyor.
+Yemek tarifini annenden öğrendim.
+Mutfakta bir şeyler yanıyor, dikkat et.
+Dolapta temiz havlu var mı?
+Duştan çıkınca üşüdüm.
+Sınavdan önce iyi uy.
+Ödev yapmayı ihmal etme.
+Sözlük kullanmak kelime öğrenmeye yardımcı olur.
+Dil öğrenmek zaman ve sabır ister.
+İngilizce dersine başlamak istiyorum.
+Fransızca seslerin telaffuzu zor.
+Almancada uzun kelimeler var.
+Japonca alfabesi çok karmaşık.
+Matematik sınavında iyi not aldım.
+Fizik problemini çözmekte zorlandım.
+Kimya deneyinde dikkatli ol.
+Biyoloji ödevi hâlâ bitmedi.
+Tarih dersinde Osmanlı dönemi işlendi.
+Coğrafya haritasını ezberlemem gerekiyor.
+Müzik notalarını öğrenmek eğlenceli.
+Resim yapmak yaratıcılığı geliştirir.
+Beden eğitimi dersinde voleybol oynadık.
+Kütüphanede sessiz olunması gerekiyor.
+Sınıfta cep telefonu kullanmak yasak.
+Öğretmen tahtaya bir şey yazdı.
+Ders kitabının üçüncü bölümünü oku.
+Ödev son teslim tarihi yarın.
+Sınav haftasında daha çok çalışıyorum.
+Mezuniyet töreninde çok mutlu oldum.
+Burs başvurusu için evrak hazırladım.
+Üniversite sınavına hazırlanıyorum.
+Kariyer planımı gözden geçirdim.
+İş görüşmesine hazırlıklı gitmeliyim.
+Özgeçmiş yazmak çok önemli.
+Takım çalışması başarının anahtarı.
+Proje teslim tarihi yaklaşıyor.
+Toplantıda yeni fikirler paylaştık.
+Müşteri memnuniyeti önceliğimiz.
+Bütçe raporu hazır, inceleyebilirsiniz.
+Şirket yeni bir ürün piyasaya sürdü.
+Reklam kampanyası başladı.
+Sosyal medyada paylaşım yaptım.
+E-posta gönderdim, kontrol eder misiniz?
+Telefonla arayıp bilgi aldım.
+Toplantı notlarını yazdım.
+Sunum hazırlarken dikkatli ol.
+Veri tabanına kayıt eklendi.
+Program güncellendi, tekrar başlat.
+İnternet bağlantısı kesildi.
+Şifre yanlış, tekrar dene.
+Ekranı kaydedip paylaş.
+Dosyayı e-posta ile gönder.
+Belgeyi yazdırmam gerekiyor.
+Yazıcı kağıdı bitti.
+Photokopi almam lazım.
+Klima çok soğutuyor, biraz ayarla.
+Işığı söndürmeyi unutma.
+Kapıyı kilitledin mi?
+Anahtarı nereye koydum, bulamıyorum.
+Cüzdanımı masanın üzerinde bıraktım.
+Pasaportum nerede acaba?
+Bilet rezervasyonu yaptım.
+Otel odası çok konforlu.
+Uçuş saatini kontrol ettim.
+Bavulumu yarın paklayacağım.
+Yabancı ülkede dil bariyeri var.
+Tercüman olmadan anlayamıyorum.
+Harita uygulaması yolu gösteriyor.
+Navigasyon sesi çok yavaş konuşuyor.
+Benzin doldurmam gerekiyor.
+Lastik patlamış, yardım lazım.
+Çekici çağırmalıyız.
+Hastaneye gitmeliyiz acil.
+Ambulansı arayın hemen.
+İtfaiye yangını söndürdü.
+Polis arabasını gördüm.
+Trafik lambası bozuk.
+Zebradan geçerken dikkatli ol.
+Kaldırım çok dar, arabalar yakın geçiyor.
+Toplu taşıma kullanmak çevreye duyarlı.
+Bisikletle işe gidiyorum.
+Yürüyüş yapmak sağlıklı.
+Spor salonuna üye oldum.
+Yüzmek çok eğlenceli bir spor.
+Tenis oynamayı seviyorum.
+Futbol maçı izlemek heyecan verici.
+Basketbol sahası burada mı?
+Voleybol topu şişirilmesi lazım.
+Güreş Türkiye'nin millî sporudur.
+Okçuluk pratiği gerektiriyor.
+Kayak yapmak için dağa çıktık.
+Paraşütle atlamak cesaret istiyor.
+Rafting çok heyecan vericiydi.
+Dağcılık ekipmanını kontrol et.
+Kamp ateşi yakarken dikkatli ol.
+Çadırı doğru kurmalıyız.
+Uyku tulumu soğuk gecelerde şart.
+Pusula kullanmayı bilmek önemli.
+Haritayı okuyabilmek gerekiyor.
+Yabani hayvanlardan uzak dur.
+Arılar beni kovaladı.
+Sivrisinek ısırığı kaşındırıyor.
+Güneş kremi sürmeyi unutma.
+Denizde güneş çarpması tehlikeli.
+Yanma durumunda soğuk su uygula.
+İlk yardım bilmek hayat kurtarır.
+Sargı bezi nerede acaba?
+Antibiyotik almam gerekiyor.
+Grip oldum, doktora gideceğim.
+Ateşim var, ölçeyim.
+Baş ağrısı için ilaç aldım.
+Uykusuzluk sağlığı olumsuz etkiler.
+Stres seviyesi çok yüksek.
+Meditasyon yapmak zihin açıyor.
+Yoga dersi almaya başladım.
+Sağlıklı beslenmek çok önemli.
+Sebze ve meyve çok tüketmeliyiz.
+Şeker ve tuz miktarına dikkat et.
+Fast food sağlıksız bir seçim.
+Ev yemeği her zaman daha iyidir.
+Tarif kitabından yeni bir şey deneyeceğim.
+Fırın ısındı mı, kontrol et.
+Tencereyi ocaktan almayı unutma.
+Bıçağı dikkatli kullan, keskin.
+Bulaşık makinesi doldu, çalıştırayım.
+Çamaşırları kurutucu yerine balkona as.
+Evi süpürmem gerekiyor.
+Pencere camları kirlendi.
+Banyo temizliği sıra bekliyor.
+Elektrik süpürgesi bozuldu.
+Havalandırma filtresi değişmeli.
+Sıhhi tesisat tamircisi çağıralım.
+Musluk damlıyor, tamir lazım.
+Duvar boyası dökülmüş.
+Mobilya monte etmek zaman alıyor.
+Bahçe çitleri onarılmalı.
+Çimen biçme vakti geldi.
+Çiçekleri sulamayı unuttum.
+Gübre atmalıyım, bitkiler solmuş.
+Kışa girmeden sobayı kontrol et.
+Kalorifer petek sesi çıkarıyor.
+Cam kenarı çok soğuk, lastik eklenmeli.
+Çatı yalıtımı yetersiz.
+Bodrum katında nem var.
+Bodrum katında arşiv kutuları var.
+Eski fotoğrafları dijitale aktarmak istiyorum.
+Aile albümüne baktım, güzel anılar.
+Ninnem bana çocukluk hikâyeleri anlattı.
+Dedem gençken denizci imiş.
+Babamın gitarı hâlâ saklı.
+Annem nakış işlemeyi çok seviyor.
+Kardeşim yemek yapmayı öğreniyor.
+Amcam bu yaz bizi ziyaret edecek.
+Teyzem bana güzel bir hediye getirdi.
+Dayım çok komik hikâyeler anlatır.
+Yeğenim ilk adımını attı.
+Torun sahibi olmak büyük mutluluk.
+Düğün davetiyesi geldi.
+Nikâh törenine katılacağız.
+Bebek bekliyorlar, tebrikler.
+Cenaze törenine gitmemiz gerekiyor.
+Bayram tatilinde toplanıyoruz.
+Kurban Bayramı için köye gideceğiz.
+Ramazan'da iftara davet edildik.
+Yılbaşı için plan yaptık.
+Sevgililer günü hediyesi aldım.
+Anneler Günü'nde çiçek götürdüm.
+Öğretmenler Günü'nde kart hazırladım.
+Cumhuriyet Bayramı kutlu olsun.
+Atatürk'ü saygıyla anıyoruz.
+Millî marşımızı ezbere bilmek önemli.
+Bayrak töreni çok etkileyiciydi.
+Şehit ailelerine başsağlığı dilerim.
+Gazilerimize saygı ve minnettarız.
+Tarihimizi öğrenmek vatanseverliğin gereği.
+Anadolu medeniyetleri çok zengin.
+Efes antik kenti muhteşem.
+Kapadokya'nın peri bacaları eşsiz.
+Pamukkale travertenleri harikaydı.
+İstanbul Boğazı'nda vapurla geçtik.
+Topkapı Sarayı tarihin içinde yürümek gibi.
+Sultanahmet Camii'nin mimarisi göz alıcı.
+Kapalı Çarşı'da alışveriş yaptık.
+Galata Kulesi'nden şehir manzarası güzel.
+Bosphorus'ta tekne turu yaptık.
+İzmir'in rüzgârı çok serinletici.
+Antalya plajları kristal berraklığında.
+Bodrum'da gece hayatı hareketli.
+Trabzon fındığı dünyaca ünlü.
+Bursa'nın İskender kebabı enfes.
+Gaziantep baklavası ağzı sulandırıyor.
+Adana kebabının acısı efsane.
+Van kahvaltısı muhteşem bir sofra.
+Kayseri'de pastırma ve sucuk meşhur.
+Konya'nın etliekmek, birbirinden lezzetli.
+Türk mutfağı çok zengin ve çeşitli.
+Zeytinyağlı yemekler sağlıklı ve lezzetli.
+Pilav hemen hemen her yemeğe eşlik eder.
+Çorba sofranın vazgeçilmez başlangıcı.
+Tatlı olarak baklava veya sütlaç tercih ederim.
+Türk çayı dünyada eşsiz bir içecektir.
+Kahve falına bakmayı severim.
+Ayran ve kefir Türklerin geleneksel içeceği.
+Rakı balık yemeklerinin vazgeçilmezi.
+Boza kışın içilir, ılık ve hafif tatlı.

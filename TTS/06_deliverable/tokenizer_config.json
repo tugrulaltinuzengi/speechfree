@@ -1,0 +1,11 @@
+{
+  "_comment": "Template — this file is overwritten by export_vits.py with the real char_to_id from the trained model.",
+  "characters": "abcçdefgğhıijklmnoöprsştüüvyz !',.-?",
+  "pad": "<PAD>",
+  "eos": "<EOS>",
+  "bos": "<BOS>",
+  "blank": "<BLNK>",
+  "use_phonemes": false,
+  "text_cleaner": "turkish_cleaners",
+  "char_to_id": {}
+}
