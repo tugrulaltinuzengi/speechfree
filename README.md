@@ -160,3 +160,6 @@ Kadir Has University · Electrical & Electronics Engineering · FENS 402 — Eng
 [MIT](LICENSE).
 
 **Disclaimer:** Academic research prototype. Not a certified medical device. Do not use for clinical purposes without full regulatory validation.
+
+> **Repository status:** this repo currently holds the project overview only. The referenced
+> `docs/`, `Final/` and `TTS/` folders have not been published yet; links to them will resolve once added.
